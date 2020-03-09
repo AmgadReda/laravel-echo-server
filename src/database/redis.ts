@@ -35,6 +35,8 @@ export class RedisDatabase implements DatabaseDriver {
                     "members": value
                 }
             }));
-        }
+        } else if (/^private-.*/.test(key)) {
+			this._redis.publish(key, JSON.stringify(value));
+		}
     }
 }

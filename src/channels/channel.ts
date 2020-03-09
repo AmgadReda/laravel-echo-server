@@ -1,8 +1,13 @@
 import { PresenceChannel } from './presence-channel';
 import { PrivateChannel } from './private-channel';
+import { Database } from './../database';
 import { Log } from './../log';
 
 export class Channel {
+    /**
+     * Database instance.
+     */
+    db: Database;
     /**
      * Channels and patters for private channels.
      */
@@ -27,6 +32,7 @@ export class Channel {
      * Create a new channel instance.
      */
     constructor(private io, private options) {
+		this.db = new Database(options);
         this.private = new PrivateChannel(options);
         this.presence = new PresenceChannel(io, options);
 
@@ -57,15 +63,15 @@ export class Channel {
 			data = JSON.parse(data);
 		} catch(e) {
 			data = data;
-		};
-		
+		}
         if (data.event && data.channel) {
             if (this.isClientEvent(data.event) &&
                 this.isPrivate(data.channel) &&
                 this.isInChannel(socket, data.channel)) {
                 this.io.sockets.connected[socket.id]
-                    .broadcast.to(data.channel)
-                    .emit(data.event, data.channel, data.data);
+                    .broadcast.to(data.channel);
+                    //.emit(data.event, data.channel, data.data);
+				this.db.set(data.channel, data);
             }
         }
     }
